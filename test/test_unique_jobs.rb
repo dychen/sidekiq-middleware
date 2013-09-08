@@ -86,7 +86,11 @@ class TestUniqueJobs < MiniTest::Unit::TestCase
 
       it "should process the job and enqueue itself again" do
         # Queue the parent job
-        UniqueScheduledWorker.perform_at(Time.now)
+        start_time = Time.now - 60
+        queue_time = start_time + 30
+        Timecop.travel start_time do
+          UniqueScheduledWorker.perform_at(queue_time)
+        end
         assert_equal 1, Sidekiq.redis { |c| c.zcard('schedule') }
 
         # Make sure sidekiq pops the item off the scheduled queue
